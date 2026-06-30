@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.venv
+*.db
+*.log
+*.sqlite
+
+# Node
+node_modules/
+frontend/build/
+frontend/dist/
+
+# Environment / secrets
+.env
+.env.local
+.env.production
+deployment/production/production.env
+
+# Backup / temp files
+*.backup
+*.backup-*
+*.pre-grid-backup
+*.before_fix
+*.backup.demo
+*.disabled
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Misc
+*.log
+logs/

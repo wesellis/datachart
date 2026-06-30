@@ -1,0 +1,42 @@
+/* Clean Responsive Grid System */
+
+/* Dashboard content container */
+.dashboard-content {
+  padding: 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Base grid container */
+.dashboard-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  grid-auto-rows: min-content;
+}
+
+/* Desktop: 12 columns */
+@media (min-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+/* Tablet: 6 columns */  
+@media (min-width: 768px) and (max-width: 1199px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Mobile: 3 columns */
+@media (max-width: 767px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Prevent overflow */
+* {
+  box-sizing: border-box;
+}

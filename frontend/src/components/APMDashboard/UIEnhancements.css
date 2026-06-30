@@ -1,0 +1,39 @@
+/* UI Enhancement Styles */
+
+.skeleton-loader {
+  background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+  height: 1rem;
+  width: 100%;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Placeholder styles for ExecutiveInsights */
+.executive-insights-placeholder {
+  padding: 20px;
+}
+
+.executive-insights-placeholder .skeleton-loader {
+  margin-bottom: 0.75rem;
+}
+
+.executive-insights-placeholder .skeleton-loader:nth-child(1) {
+  width: 60%;
+  height: 24px;
+}
+
+.executive-insights-placeholder .skeleton-loader:nth-child(2) {
+  width: 40%;
+  height: 36px;
+}
+
+.executive-insights-placeholder .skeleton-loader:nth-child(3) {
+  width: 80%;
+  height: 16px;
+}

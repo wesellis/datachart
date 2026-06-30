@@ -1,0 +1,1 @@
+# Snowflake Mock Data Package for Hubbell Incorporated

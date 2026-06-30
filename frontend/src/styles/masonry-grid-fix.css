@@ -1,0 +1,58 @@
+/* Masonry-like Grid Layout Fix */
+/* Allows widgets to have natural heights without forcing row alignment */
+
+.dashboard-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  /* Use auto for rows to allow variable heights */
+  grid-auto-rows: auto;
+  grid-auto-flow: dense; /* Fill in gaps for better space usage */
+  align-items: start; /* Align items to top of their cells */
+  padding: 16px;
+  padding-bottom: 100px;
+  min-height: 100vh;
+}
+
+/* Ensure widgets don't stretch vertically */
+.dashboard-grid > * {
+  align-self: start;
+  min-height: unset !important;
+}
+
+/* Remove any height stretching on widget containers */
+.dashboard-grid .widget-container,
+.dashboard-grid .chart-card,
+.dashboard-grid .metric-card,
+.dashboard-grid .grid-item {
+  height: auto !important;
+  align-self: start;
+}
+
+/* Let widget content determine height */
+.dashboard-grid .widget-content {
+  height: auto;
+  min-height: 200px; /* Minimum for visibility */
+}
+
+/* Charts should have consistent height */
+.dashboard-grid .chart-container {
+  height: 300px; /* Fixed height for charts */
+}
+
+/* KPI cards stay compact */
+.dashboard-grid .metric-card {
+  height: auto;
+  min-height: 100px;
+  max-height: 150px;
+}
+
+/* Prevent empty space in grid cells */
+.dashboard-grid > div {
+  margin-bottom: 0 !important;
+}
+
+/* For widgets that span multiple rows, let them flow naturally */
+.dashboard-grid .multi-row-widget {
+  grid-row: span auto;
+}

@@ -1,0 +1,230 @@
+/* MetricCard - Clean, unified styling */
+
+/* Remove outer wrapper styling when in dashboard grid */
+.dashboard-grid .metric-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  height: 100%;
+  min-height: 100px;
+  display: flex;
+}
+
+/* The actual card - same for all variants */
+.metric-card-inner {
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Light mode - all cards white background */
+[data-theme="light"] .metric-card-inner,
+.metric-card-inner {
+  background: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode - all cards dark background */
+[data-theme="dark"] .metric-card-inner {
+  background: #2d3748;
+  border: 1px solid #4a5568;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover effects */
+.metric-card:hover .metric-card-inner {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .metric-card:hover .metric-card-inner {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Layout */
+.metric-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.metric-right {
+  flex-shrink: 0;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* Typography - Light mode */
+.metric-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.metric-subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Typography - Dark mode */
+[data-theme="dark"] .metric-title {
+  color: #a0aec0;
+}
+
+[data-theme="dark"] .metric-subtitle {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .metric-value {
+  color: #f7fafc;
+}
+
+/* Trend indicators */
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.trend-up {
+  color: #10b981;
+}
+
+.trend-down {
+  color: #ef4444;
+}
+
+/* Special highlight card (Total Savings) - Green gradient */
+.metric-card.highlight .metric-card-inner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+}
+
+.metric-card.highlight .metric-title,
+.metric-card.highlight .metric-subtitle,
+.metric-card.highlight .metric-value,
+.metric-card.highlight .metric-trend {
+  color: white !important;
+}
+
+/* Dark mode keeps the same green gradient */
+[data-theme="dark"] .metric-card.highlight .metric-card-inner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+/* Ignore color prop classes - all cards should look the same except highlight */
+.metric-card.primary .metric-card-inner,
+.metric-card.secondary .metric-card-inner,
+.metric-card.info .metric-card-inner,
+.metric-card.warning .metric-card-inner,
+.metric-card.danger .metric-card-inner,
+.metric-card.success .metric-card-inner {
+  /* Use default styling - don't apply special colors */
+  background: inherit;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .metric-value {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .metric-value {
+    font-size: 24px;
+  }
+  
+  .metric-card-inner {
+    padding: 16px;
+  }
+  
+  .metric-right {
+    margin-left: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-value {
+    font-size: 20px;
+  }
+  
+  .metric-card-inner {
+    padding: 14px;
+  }
+}
+
+/* Reset margins and padding */
+.metric-title,
+.metric-subtitle,
+.metric-value,
+.metric-trend {
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure consistent sizing */
+.metric-card,
+.metric-card-inner {
+  box-sizing: border-box;
+}
+
+/* DEMO FIX - Alert bar spacing and responsive grid */
+.alert-card,
+[class*="compliance"],
+[class*="executive-insights"],
+[class*="high-risk"] {
+  margin-bottom: 1rem !important;
+}
+
+/* Fix responsive grid stacking */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+  .dashboard-grid > * {
+    grid-column: span 1 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  .dashboard-grid > * {
+    width: 100% !important;
+  }
+}
