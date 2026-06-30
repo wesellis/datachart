@@ -1,0 +1,33 @@
+{
+  "name": "datachart",
+  "version": "1.0.0",
+  "description": "DataChart - SaaS Dashboard Builder Platform",
+  "private": true,
+  "scripts": {
+    "dev": "docker-compose up -d",
+    "build": "docker-compose build",
+    "start": "docker-compose up",
+    "stop": "docker-compose down",
+    "logs": "docker-compose logs -f",
+    "test": "cd backend && python -m pytest && cd ../frontend && npm test",
+    "lint": "cd frontend && npm run lint",
+    "clean": "docker-compose down -v && rm -rf frontend/node_modules backend/venv"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wesellis/datachart.git"
+  },
+  "keywords": [
+    "saas",
+    "dashboard",
+    "enterprise",
+    "charts",
+    "data-visualization"
+  ],
+  "author": "Wesley Ellis",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
