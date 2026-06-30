@@ -1,0 +1,71 @@
+/* KPI Font Size Fix - Force all metric values to 32px */
+
+/* Override all metric-value font sizes with high specificity */
+.metric-value,
+.metric-card .metric-value,
+.app-metric .metric-value,
+.metric-card.highlight .metric-value,
+.metric-card.compact .metric-value,
+.dashboard-grid .metric-value,
+.metric-card-inner .metric-value,
+body .metric-value,
+body .app-metric .metric-value,
+body .metric-card .metric-value {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+/* Dark mode */
+[data-theme="dark"] .metric-value,
+[data-theme="dark"] .app-metric .metric-value,
+[data-theme="dark"] .metric-card .metric-value {
+  font-size: 32px !important;
+}
+
+/* Mobile responsiveness - slightly smaller on small screens */
+@media (max-width: 768px) {
+  .metric-value,
+  .metric-card .metric-value,
+  .app-metric .metric-value {
+    font-size: 28px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-value,
+  .metric-card .metric-value,
+  .app-metric .metric-value {
+    font-size: 24px !important;
+  }
+}
+
+/* Dark Mode Background Fixes for KPI Cards */
+[data-theme="dark"] .metric-card .metric-card-inner,
+[data-theme="dark"] .dashboard-grid .metric-card .metric-card-inner,
+[data-theme="dark"] .metric-card-inner,
+body[data-theme="dark"] .metric-card-inner,
+html[data-theme="dark"] .metric-card-inner {
+  background: #2d3748 !important;
+  border: 1px solid #4a5568 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Dark mode for highlight cards (Total Savings) */
+[data-theme="dark"] .metric-card.highlight .metric-card-inner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+}
+
+/* Ensure dark text colors in dark mode */
+[data-theme="dark"] .metric-value {
+  color: #f7fafc !important;
+}
+
+[data-theme="dark"] .metric-title {
+  color: #a0aec0 !important;
+}
+
+[data-theme="dark"] .metric-subtitle {
+  color: #94a3b8 !important;
+}

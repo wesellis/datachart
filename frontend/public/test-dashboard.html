@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard API Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .response {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 DataChart Dashboard API Test</h1>
+        
+        <div class="status">
+            Backend URL: <strong>http://localhost:8000</strong><br>
+            Demo Endpoint: <strong>/api/v1/dashboards/demo</strong>
+        </div>
+
+        <h2>Test Dashboard Creation</h2>
+        <input type="text" id="dashboardName" placeholder="Enter dashboard name" value="My Test Dashboard">
+        
+        <div>
+            <button onclick="testGetDemos()">📋 Get Demo Dashboards</button>
+            <button onclick="testCreateDashboard()">✨ Create New Dashboard</button>
+            <button onclick="testBackendHealth()">❤️ Check Backend Health</button>
+        </div>
+
+        <div id="result" class="response"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `response ${isError ? 'error' : 'success'}`;
+            resultDiv.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        async function testGetDemos() {
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/dashboards/demo`);
+                const data = await response.json();
+                showResult({
+                    status: 'SUCCESS',
+                    message: 'Demo dashboards retrieved successfully!',
+                    data: data
+                });
+            } catch (error) {
+                showResult(`ERROR: ${error.message}`, true);
+            }
+        }
+
+        async function testCreateDashboard() {
+            const dashboardName = document.getElementById('dashboardName').value;
+            
+            if (!dashboardName) {
+                showResult('Please enter a dashboard name', true);
+                return;
+            }
+
+            const dashboardData = {
+                name: dashboardName,
+                description: `Created via test page at ${new Date().toLocaleString()}`,
+                widgets: [
+                    {
+                        id: 'w1',
+                        type: 'metric',
+                        title: 'Total Revenue',
+                        config: { value: 1234567 }
+                    },
+                    {
+                        id: 'w2',
+                        type: 'chart',
+                        title: 'Sales Trend',
+                        config: { chartType: 'line' }
+                    }
+                ],
+                is_public: true,
+                theme: 'dark',
+                tags: ['test', 'demo'],
+                category: 'testing'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/dashboards/demo`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dashboardData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult({
+                        status: 'SUCCESS',
+                        message: `Dashboard "${dashboardName}" created successfully!`,
+                        dashboard_id: data.id,
+                        created_at: data.created_at,
+                        data: data
+                    });
+                } else {
+                    showResult({
+                        status: 'ERROR',
+                        message: 'Failed to create dashboard',
+                        error: data
+                    }, true);
+                }
+            } catch (error) {
+                showResult(`ERROR: ${error.message}\n\nMake sure the backend is running on port 8000`, true);
+            }
+        }
+
+        async function testBackendHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                showResult({
+                    status: 'Backend is running!',
+                    data: data
+                });
+            } catch (error) {
+                showResult(`ERROR: Cannot connect to backend at ${API_BASE}\n\nMake sure to run: python3 -m uvicorn app.main:app --reload --port 8000`, true);
+            }
+        }
+
+        // Test backend on load
+        window.onload = () => {
+            testBackendHealth();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+/* Dashboard Grid - 12/6/3 column responsive system */
+/* CRITICAL: Do not use !important unless absolutely necessary */
+
+.dashboard-grid {
+  display: grid;
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+  grid-auto-rows: auto;
+  padding: 16px;
+  padding-bottom: 100px;
+  min-height: 100vh;
+}
+
+/* Desktop: 12 columns - for screens 1600px and wider */
+@media (min-width: 1600px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+  
+  /* Alert bar - full width */
+  .alert-card {
+    grid-column: span 12;
+  }
+  
+  /* KPIs - 3 columns each = 4 per row */
+  .metric-card {
+    grid-column: span 3;
+  }
+  
+  /* Live updates - 3 columns */
+  .live-updates-card {
+    grid-column: span 3;
+  }
+  
+  /* Charts - 6 columns = 2 per row */
+  .chart-card {
+    grid-column: span 6;
+  }
+  
+  /* Full width items */
+  .full-width-card {
+    grid-column: span 12;
+  }
+}
+
+/* Tablet/Half-screen: 6 columns - for 768px to 1599px */
+@media (min-width: 768px) and (max-width: 1599px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  /* Alert bar - full width */
+  .alert-card {
+    grid-column: span 6;
+  }
+  
+  /* KPIs - 3 columns each = 2 per row in 6-column grid */
+  .metric-card {
+    grid-column: span 3;
+  }
+  
+  /* Live updates - 3 columns */
+  .live-updates-card {
+    grid-column: span 3;
+  }
+  
+  /* Charts - full width on tablet */
+  .chart-card {
+    grid-column: span 6;
+  }
+  
+  /* Full width items */
+  .full-width-card {
+    grid-column: span 6;
+  }
+}
+
+/* Mobile: 3 columns - for screens smaller than 768px */
+@media (max-width: 767px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Everything spans full width on mobile */
+  .alert-card,
+  .metric-card,
+  .live-updates-card,
+  .chart-card,
+  .full-width-card {
+    grid-column: span 3;
+  }
+}
+
+/* Remove double-boxing for metric cards */
+.dashboard-grid .metric-card .metric-card {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Dark mode aware inner content */
+.dashboard-grid .metric-card .metric-card-inner {
+  padding: 16px 20px;
+  height: 100%;
+  border-radius: 12px;
+}
+
+/* In light mode only */
+body:not(.dark-mode) .dashboard-grid .metric-card .metric-card-inner {
+  background: white;
+}
+
+/* Ensure minimum heights for better visual consistency */
+.metric-card {
+  min-height: 100px;
+}
+
+.chart-card {
+  min-height: 300px;
+}
+
+/* Override any conflicting styles from APMDashboard.css */
+.dashboard-grid {
+  grid-template-rows: unset !important;
+  grid-auto-rows: min-content !important;
+}

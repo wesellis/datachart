@@ -1,0 +1,405 @@
+# DataChart SaaS - Alert Rules
+# Enterprise alerting rules for the SaaS platform
+
+groups:
+  # System-level alerts
+  - name: system-alerts
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: DataChart_cpu_usage_percent > 85
+        for: 5m
+        labels:
+          severity: high
+          category: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% for more than 5 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/high-cpu"
+
+      # Critical CPU usage
+      - alert: CriticalCPUUsage
+        expr: DataChart_cpu_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is {{ $value }}% for more than 2 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/critical-cpu"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: DataChart_memory_usage_percent > 85
+        for: 5m
+        labels:
+          severity: high
+          category: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% for more than 5 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/high-memory"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: DataChart_memory_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is {{ $value }}% for more than 2 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/critical-memory"
+
+      # High disk usage
+      - alert: HighDiskUsage
+        expr: DataChart_disk_usage_percent > 90
+        for: 10m
+        labels:
+          severity: high
+          category: system
+        annotations:
+          summary: "High disk usage on {{ $labels.device }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.device }} for more than 10 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/high-disk"
+
+      # Critical disk usage
+      - alert: CriticalDiskUsage
+        expr: DataChart_disk_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Critical disk usage on {{ $labels.device }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.device }} for more than 5 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/critical-disk"
+
+  # API performance alerts
+  - name: api-alerts
+    rules:
+      # High API response time
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(DataChart_api_request_duration_seconds_bucket[5m])) > 2.0
+        for: 5m
+        labels:
+          severity: medium
+          category: api
+        annotations:
+          summary: "High API response time for {{ $labels.endpoint }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.endpoint }}"
+          runbook_url: "https://docs.datachart.app/runbooks/slow-api"
+
+      # Critical API response time
+      - alert: CriticalAPIResponseTime
+        expr: histogram_quantile(0.95, rate(DataChart_api_request_duration_seconds_bucket[5m])) > 10.0
+        for: 2m
+        labels:
+          severity: critical
+          category: api
+        annotations:
+          summary: "Critical API response time for {{ $labels.endpoint }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.endpoint }}"
+          runbook_url: "https://docs.datachart.app/runbooks/critical-api"
+
+      # High error rate
+      - alert: HighAPIErrorRate
+        expr: (
+          sum(rate(DataChart_api_errors_total[5m])) by (endpoint) /
+          sum(rate(DataChart_api_requests_total[5m])) by (endpoint)
+        ) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          category: api
+        annotations:
+          summary: "High error rate for {{ $labels.endpoint }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.endpoint }}"
+          runbook_url: "https://docs.datachart.app/runbooks/high-error-rate"
+
+      # Critical error rate
+      - alert: CriticalAPIErrorRate
+        expr: (
+          sum(rate(DataChart_api_errors_total[5m])) by (endpoint) /
+          sum(rate(DataChart_api_requests_total[5m])) by (endpoint)
+        ) > 0.20
+        for: 2m
+        labels:
+          severity: critical
+          category: api
+        annotations:
+          summary: "Critical error rate for {{ $labels.endpoint }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.endpoint }}"
+          runbook_url: "https://docs.datachart.app/runbooks/critical-error-rate"
+
+      # Low API request volume (potential issue)
+      - alert: LowAPIRequestVolume
+        expr: sum(rate(DataChart_api_requests_total[10m])) < 1
+        for: 10m
+        labels:
+          severity: medium
+          category: api
+        annotations:
+          summary: "Low API request volume"
+          description: "API request rate is {{ $value }} requests/second, which is unusually low"
+          runbook_url: "https://docs.datachart.app/runbooks/low-traffic"
+
+  # Database alerts
+  - name: database-alerts
+    rules:
+      # High database connections
+      - alert: HighDatabaseConnections
+        expr: DataChart_db_connections_active > 80
+        for: 5m
+        labels:
+          severity: high
+          category: database
+        annotations:
+          summary: "High number of active database connections"
+          description: "{{ $value }} active database connections"
+          runbook_url: "https://docs.datachart.app/runbooks/high-db-connections"
+
+      # Slow database queries
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, rate(DataChart_db_query_duration_seconds_bucket[5m])) > 5.0
+        for: 5m
+        labels:
+          severity: medium
+          category: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile query time is {{ $value }}s"
+          runbook_url: "https://docs.datachart.app/runbooks/slow-queries"
+
+      # Database down
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been down for more than 1 minute"
+          runbook_url: "https://docs.datachart.app/runbooks/database-down"
+
+  # Integration alerts
+  - name: integration-alerts
+    rules:
+      # Snowflake integration errors
+      - alert: SnowflakeIntegrationErrors
+        expr: increase(DataChart_integration_requests_total{integration="snowflake",status="error"}[10m]) > 5
+        for: 5m
+        labels:
+          severity: high
+          category: integration
+        annotations:
+          summary: "High error rate in Snowflake integration"
+          description: "{{ $value }} Snowflake integration errors in the last 10 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/snowflake-errors"
+
+      # Azure integration errors
+      - alert: AzureIntegrationErrors
+        expr: increase(DataChart_integration_requests_total{integration="azure",status="error"}[10m]) > 5
+        for: 5m
+        labels:
+          severity: high
+          category: integration
+        annotations:
+          summary: "High error rate in Azure integration"
+          description: "{{ $value }} Azure integration errors in the last 10 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/azure-errors"
+
+      # ServiceNow integration errors
+      - alert: ServiceNowIntegrationErrors
+        expr: increase(DataChart_integration_requests_total{integration="servicenow",status="error"}[10m]) > 5
+        for: 5m
+        labels:
+          severity: high
+          category: integration
+        annotations:
+          summary: "High error rate in ServiceNow integration"
+          description: "{{ $value }} ServiceNow integration errors in the last 10 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/servicenow-errors"
+
+      # Integration timeout alerts
+      - alert: IntegrationTimeout
+        expr: histogram_quantile(0.95, rate(DataChart_integration_response_time_seconds_bucket[5m])) > 30.0
+        for: 5m
+        labels:
+          severity: medium
+          category: integration
+        annotations:
+          summary: "Slow integration response for {{ $labels.integration }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.integration }} {{ $labels.operation }}"
+          runbook_url: "https://docs.datachart.app/runbooks/slow-integration"
+
+  # Business metric alerts
+  - name: business-alerts
+    rules:
+      # Low active customers
+      - alert: LowActiveCustomers
+        expr: DataChart_active_customers_total < 5
+        for: 10m
+        labels:
+          severity: medium
+          category: business
+        annotations:
+          summary: "Low number of active customers"
+          description: "Only {{ $value }} active customers"
+          runbook_url: "https://docs.datachart.app/runbooks/low-customers"
+
+      # High customer API usage
+      - alert: HighCustomerAPIUsage
+        expr: DataChart_api_quota_usage_percent > 90
+        for: 5m
+        labels:
+          severity: medium
+          category: business
+        annotations:
+          summary: "High API usage for customer {{ $labels.tenant_id }}"
+          description: "Customer {{ $labels.tenant_id }} is at {{ $value }}% of their API quota for {{ $labels.endpoint }}"
+          runbook_url: "https://docs.datachart.app/runbooks/quota-exceeded"
+
+      # Customer exceeded API quota
+      - alert: CustomerAPIQuotaExceeded
+        expr: DataChart_api_quota_usage_percent > 100
+        for: 1m
+        labels:
+          severity: high
+          category: business
+        annotations:
+          summary: "Customer {{ $labels.tenant_id }} exceeded API quota"
+          description: "Customer {{ $labels.tenant_id }} is at {{ $value }}% of their API quota for {{ $labels.endpoint }}"
+          runbook_url: "https://docs.datachart.app/runbooks/quota-exceeded"
+
+      # Revenue drop
+      - alert: MonthlyRevenueDown
+        expr: DataChart_monthly_recurring_revenue_dollars < 25000  # Less than $25K MRR
+        for: 1h
+        labels:
+          severity: high
+          category: business
+        annotations:
+          summary: "Monthly recurring revenue is low"
+          description: "MRR is {{ $value | humanize }}$, below target of $25,000"
+          runbook_url: "https://docs.datachart.app/runbooks/low-revenue"
+
+  # Service health alerts
+  - name: service-health-alerts
+    rules:
+      # Backend service down
+      - alert: BackendServiceDown
+        expr: up{job="datachart-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: service
+        annotations:
+          summary: "DataChart backend service is down"
+          description: "Backend service has been down for more than 1 minute"
+          runbook_url: "https://docs.datachart.app/runbooks/backend-down"
+
+      # Frontend service down
+      - alert: FrontendServiceDown
+        expr: up{job="datachart-frontend"} == 0
+        for: 2m
+        labels:
+          severity: high
+          category: service
+        annotations:
+          summary: "DataChart frontend service is down"
+          description: "Frontend service has been down for more than 2 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/frontend-down"
+
+      # Redis service down
+      - alert: RedisServiceDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: service
+        annotations:
+          summary: "Redis service is down"
+          description: "Redis service has been down for more than 1 minute"
+          runbook_url: "https://docs.datachart.app/runbooks/redis-down"
+
+      # Elasticsearch service down
+      - alert: ElasticsearchServiceDown
+        expr: up{job="elasticsearch"} == 0
+        for: 2m
+        labels:
+          severity: high
+          category: service
+        annotations:
+          summary: "Elasticsearch service is down"
+          description: "Elasticsearch service has been down for more than 2 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/elasticsearch-down"
+
+      # RabbitMQ service down
+      - alert: RabbitMQServiceDown
+        expr: up{job="rabbitmq"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: service
+        annotations:
+          summary: "RabbitMQ service is down"
+          description: "RabbitMQ service has been down for more than 1 minute"
+          runbook_url: "https://docs.datachart.app/runbooks/rabbitmq-down"
+
+  # Certificate expiry alerts
+  - name: certificate-alerts
+    rules:
+      # SSL certificate expiring soon
+      - alert: SSLCertificateExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: medium
+          category: security
+        annotations:
+          summary: "SSL certificate expiring in {{ $value | humanizeDuration }}"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.datachart.app/runbooks/cert-renewal"
+
+      # SSL certificate expiring very soon
+      - alert: SSLCertificateExpiringVerySoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "SSL certificate expiring in {{ $value | humanizeDuration }}"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.datachart.app/runbooks/cert-renewal"
+
+  # Security alerts
+  - name: security-alerts
+    rules:
+      # High failed login attempts
+      - alert: HighFailedLoginAttempts
+        expr: increase(DataChart_api_requests_total{endpoint="/auth/login",status_code="401"}[10m]) > 20
+        for: 5m
+        labels:
+          severity: high
+          category: security
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "{{ $value }} failed login attempts in the last 10 minutes"
+          runbook_url: "https://docs.datachart.app/runbooks/failed-logins"
+
+      # Suspicious API activity
+      - alert: SuspiciousAPIActivity
+        expr: increase(DataChart_api_requests_total{status_code="403"}[10m]) > 50
+        for: 5m
+        labels:
+          severity: medium
+          category: security
+        annotations:
+          summary: "High number of 403 forbidden responses"
+          description: "{{ $value }} forbidden responses in the last 10 minutes, possible attack"
+          runbook_url: "https://docs.datachart.app/runbooks/security-incident"

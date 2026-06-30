@@ -1,0 +1,271 @@
+# DataChart SaaS - Alertmanager Configuration
+# Enterprise alerting configuration for the SaaS platform
+
+global:
+  # SMTP configuration for email alerts
+  smtp_smarthost: 'smtp.sendgrid.net:587'
+  smtp_from: 'alerts@datachart.app'
+  smtp_auth_username: 'apikey'
+  smtp_auth_password: 'SG.YOUR_SENDGRID_API_KEY'
+  smtp_require_tls: true
+
+  # Default alert settings
+  resolve_timeout: 5m
+
+# Template files
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing configuration
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default-receiver'
+  
+  routes:
+    # Critical alerts go to PagerDuty immediately
+    - match:
+        severity: critical
+      receiver: 'pagerduty-critical'
+      group_wait: 0s
+      repeat_interval: 5m
+      continue: true
+
+    # High severity alerts to Slack and email
+    - match:
+        severity: high
+      receiver: 'slack-high-severity'
+      group_wait: 30s
+      repeat_interval: 15m
+      continue: true
+
+    # Medium severity to Slack only
+    - match:
+        severity: medium
+      receiver: 'slack-medium-severity'
+      group_wait: 2m
+      repeat_interval: 30m
+
+    # Low severity alerts - daily digest
+    - match:
+        severity: low
+      receiver: 'email-digest'
+      group_wait: 5m
+      repeat_interval: 24h
+
+    # Business metric alerts
+    - match:
+        category: business
+      receiver: 'business-alerts'
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # Customer-specific alerts
+    - match_re:
+        tenant_id: '.+'
+      receiver: 'customer-alerts'
+      group_wait: 1m
+      repeat_interval: 1h
+
+# Inhibition rules (suppress alerts)
+inhibit_rules:
+  # Suppress all alerts if the entire service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      service: '.*'
+    equal: ['service']
+
+  # Suppress high CPU/memory alerts if node is down
+  - source_match:
+      alertname: 'InstanceDown'
+    target_match_re:
+      alertname: '(HighCPUUsage|HighMemoryUsage|HighDiskUsage)'
+    equal: ['instance']
+
+  # Suppress database alerts if database is down
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match_re:
+      alertname: '(DatabaseSlowQueries|DatabaseHighConnections)'
+
+# Alert receivers
+receivers:
+  # Default receiver
+  - name: 'default-receiver'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#DataChart-alerts'
+        title: 'DataChart Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        color: 'warning'
+
+  # Critical alerts - PagerDuty
+  - name: 'pagerduty-critical'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_SERVICE_KEY'
+        description: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        details:
+          cluster: '{{ .GroupLabels.cluster }}'
+          service: '{{ .GroupLabels.service }}'
+          severity: '{{ .GroupLabels.severity }}'
+        links:
+          - href: 'https://grafana.datachart.app'
+            text: 'Grafana Dashboard'
+          - href: 'https://prometheus.datachart.app'
+            text: 'Prometheus'
+
+  # High severity Slack alerts
+  - name: 'slack-high-severity'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#DataChart-alerts-high'
+        title: 'HIGH SEVERITY: DataChart Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          {{ if .Labels.tenant_id }}*Customer:* {{ .Labels.tenant_id }}{{ end }}
+          *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+        color: 'danger'
+        actions:
+          - type: 'button'
+            text: 'View Dashboard'
+            url: 'https://grafana.datachart.app'
+          - type: 'button'
+            text: 'Acknowledge'
+            url: 'https://alertmanager.datachart.app'
+
+  # Medium severity Slack alerts
+  - name: 'slack-medium-severity'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#DataChart-alerts-medium'
+        title: 'MEDIUM: DataChart Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Service:* {{ .Labels.service }}
+          {{ if .Labels.tenant_id }}*Customer:* {{ .Labels.tenant_id }}{{ end }}
+          {{ end }}
+        color: 'warning'
+
+  # Business metric alerts
+  - name: 'business-alerts'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/BUSINESS/WEBHOOK'
+        channel: '#DataChart-business-metrics'
+        title: 'Business Metric Alert'
+        text: |
+          {{ range .Alerts }}
+          *Metric:* {{ .Annotations.summary }}
+          *Details:* {{ .Annotations.description }}
+          *Value:* {{ .Annotations.value }}
+          {{ end }}
+        color: 'good'
+    email_configs:
+      - to: 'business-team@datachart.app'
+        subject: 'DataChart Business Alert'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Value: {{ .Annotations.value }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+
+  # Customer-specific alerts
+  - name: 'customer-alerts'
+    email_configs:
+      - to: 'support@datachart.app'
+        subject: 'Customer Alert: {{ .GroupLabels.tenant_id }}'
+        body: |
+          Customer Alert for Tenant: {{ .GroupLabels.tenant_id }}
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Started: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+          
+          Please investigate and contact customer if necessary.
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/CUSTOMER/WEBHOOK'
+        channel: '#DataChart-customer-alerts'
+        title: 'Customer Alert: {{ .GroupLabels.tenant_id }}'
+        text: |
+          {{ range .Alerts }}
+          *Customer:* {{ .Labels.tenant_id }}
+          *Alert:* {{ .Annotations.summary }}
+          *Service:* {{ .Labels.service }}
+          {{ end }}
+        color: 'warning'
+
+  # Email digest for low priority alerts
+  - name: 'email-digest'
+    email_configs:
+      - to: 'ops-team@datachart.app'
+        subject: 'DataChart Daily Alert Digest'
+        body: |
+          Daily Alert Digest - {{ now.Format "2006-01-02" }}
+          
+          {{ range .Alerts }}
+          - {{ .Annotations.summary }} ({{ .Labels.service }})
+          {{ end }}
+          
+          Total Alerts: {{ len .Alerts }}
+
+# Global configuration
+global_config:
+  # Resolve timeout
+  resolve_timeout: 5m
+  
+  # HTTP configuration
+  http_config:
+    follow_redirects: true
+
+# Additional webhook receivers for integrations
+webhook_configs:
+  # Generic webhook for custom integrations
+  - name: 'webhook-generic'
+    webhook_configs:
+      - url: 'https://api.datachart.app/webhooks/alerts'
+        http_config:
+          basic_auth:
+            username: 'webhook_user'
+            password: 'webhook_password'
+        send_resolved: true
+
+  # Microsoft Teams webhook
+  - name: 'teams-alerts'
+    webhook_configs:
+      - url: 'https://outlook.office.com/webhook/YOUR/TEAMS/WEBHOOK'
+        send_resolved: true
+        title: 'DataChart Alert'
+        text: |
+          {{ range .Alerts }}
+          **{{ .Annotations.summary }}**
+          
+          Service: {{ .Labels.service }}
+          Severity: {{ .Labels.severity }}
+          {{ if .Labels.tenant_id }}Customer: {{ .Labels.tenant_id }}{{ end }}
+          
+          {{ .Annotations.description }}
+          {{ end }}
+
+# Silence configuration
+silences:
+  # Example: Silence maintenance window alerts
+  - matchers:
+      - name: 'maintenance'
+        value: 'true'
+    starts_at: '2024-01-01T00:00:00Z'
+    ends_at: '2024-01-01T06:00:00Z'
+    created_by: 'system'
+    comment: 'Scheduled maintenance window'
