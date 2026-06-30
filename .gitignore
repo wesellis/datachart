@@ -45,3 +45,8 @@ htmlcov/
 # Misc
 *.log
 logs/
+
+# Internal planning docs
+docs/SEPTEMBER-*.md
+docs/TECHNICAL-RECOMMENDATIONS-*.md
+docs/SUCCESS_REPORT.md
